@@ -9,19 +9,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build iOS Shell with Watch App
+      - name: Build App
         run: |
           xcodebuild archive \
             -project DarwinDOOM.xcodeproj \
-            -scheme "DarwinDOOM" \
-            -destination "generic/platform=iOS" \
+            -scheme "DarwinDOOMWatch Watch App" \
+            -destination "generic/platform=watchOS" \
             -archivePath build/DarwinDOOM.xcarchive \
-            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGN_IDENTITY="" \
+            PROVISIONING_PROFILE_SPECIFIER=""
 
           mkdir -p Payload
           cp -r build/DarwinDOOM.xcarchive/Products/Applications/*.app Payload/ 2>/dev/null || true
+          
+          # שינוי סוג האפליקציה ב-Info.plist כך ש-Sideloadly יזהה אותה כנתמכת
+          plutil -remove ITSWatchOnlyContainer Payload/*.app/Info.plist 2>/dev/null || true
+          plutil -replace UIDeviceFamily -xml "<array><integer>1</integer><integer>4</integer></array>" Payload/*.app/Info.plist 2>/dev/null || true
+
           zip -r DarwinDOOM.ipa Payload
 
       - name: Upload IPA
