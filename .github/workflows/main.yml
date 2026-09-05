@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build watchOS App & IPA
+      - name: Build watchOS App & Archive
         run: |
           xcodebuild archive \
             -project DarwinDOOM.xcodeproj \
@@ -21,10 +21,14 @@ jobs:
             CODE_SIGNING_ALLOWED=NO
 
           mkdir -p Payload
+          # העתקת האפליקציה של השעון
           cp -r build/DarwinDOOM.xcarchive/Products/Applications/*.app Payload/ 2>/dev/null || true
-          
-          # הסרת המפתח שמכשיל את Sideloadly
+
+          # הסרת המפתח הבעייתי
           plutil -remove ITSWatchOnlyContainer Payload/*.app/Info.plist 2>/dev/null || true
+          
+          # הוספת מפתח iOS מזויף כדי לעקוף את הבדיקה של Sideloadly
+          plutil -insert LSRequiresIPhoneOS -bool YES Payload/*.app/Info.plist 2>/dev/null || true
 
           zip -r DarwinDOOM.ipa Payload
 
