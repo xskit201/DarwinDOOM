@@ -22,6 +22,10 @@ jobs:
 
           mkdir -p Payload
           cp -r build/DarwinDOOM.xcarchive/Products/Applications/*.app Payload/ 2>/dev/null || true
+          
+          # הסרת המפתח שמכשיל את Sideloadly
+          plutil -remove ITSWatchOnlyContainer Payload/*.app/Info.plist 2>/dev/null || true
+
           zip -r DarwinDOOM.ipa Payload
 
       - name: Upload IPA
